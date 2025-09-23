@@ -10,11 +10,59 @@ import { PROGRESS_STEPS } from "@/lib/constants";
 import { Link } from "wouter";
 
 export default function Dashboard() {
-  const [currentUser, setCurrentUser] = useState<string>("demo-user");
+  const [currentUser, setCurrentUser] = useState<string | null>(null);
 
   const { data: courses = [], isLoading: coursesLoading } = useQuery<Course[]>({
     queryKey: ["/api/courses"],
   });
+
+  // Initialize user on app load
+  useEffect(() => {
+    const initializeUser = async () => {
+      let userId: string | null = localStorage.getItem("currentUserId");
+      
+      if (!userId) {
+        // Create a demo user for this session
+        try {
+          const response = await fetch("/api/users", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              username: "데모 사용자",
+              email: "demo@example.com",
+              department: "안전관리팀",
+            }),
+          });
+          
+          if (response.ok) {
+            const user = await response.json();
+            if (user?.id) {
+              userId = user.id as string;
+              localStorage.setItem("currentUserId", userId);
+            } else {
+              userId = "demo-user";
+              localStorage.setItem("currentUserId", userId);
+            }
+          } else {
+            // Fallback if response not ok
+            userId = "demo-user";
+            localStorage.setItem("currentUserId", userId);
+          }
+        } catch (error) {
+          console.error("Failed to create demo user:", error);
+          // Fallback to a static ID
+          userId = "demo-user";
+          localStorage.setItem("currentUserId", userId);
+        }
+      }
+      
+      if (userId) {
+        setCurrentUser(userId);
+      }
+    };
+
+    initializeUser();
+  }, []);
 
   const { data: userProgress = [] } = useQuery<UserProgress[]>({
     queryKey: ["/api/users", currentUser, "progress"],
@@ -40,7 +88,7 @@ export default function Dashboard() {
     return "waiting";
   };
 
-  if (coursesLoading) {
+  if (coursesLoading || !currentUser) {
     return (
       <div className="min-h-screen bg-background">
         <Header />

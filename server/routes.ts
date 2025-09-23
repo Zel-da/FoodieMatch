@@ -75,7 +75,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update user progress
   app.put("/api/users/:userId/progress/:courseId", async (req, res) => {
     try {
-      const progressData = req.body;
+      const progressUpdateSchema = insertUserProgressSchema.partial().extend({
+        progress: z.number().min(0).max(100).optional(),
+        currentStep: z.number().min(1).max(3).optional(),
+        timeSpent: z.number().min(0).optional(),
+        completed: z.boolean().optional(),
+      });
+      
+      const progressData = progressUpdateSchema.parse(req.body);
       
       // Check if progress exists, create if not
       const existing = await storage.getUserProgress(req.params.userId, req.params.courseId);
@@ -84,7 +91,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const newProgress = await storage.createUserProgress({
           userId: req.params.userId,
           courseId: req.params.courseId,
-          ...progressData,
+          progress: progressData.progress || 0,
+          currentStep: progressData.currentStep || 1,
+          timeSpent: progressData.timeSpent || 0,
+          completed: progressData.completed || false,
         });
         return res.json(newProgress);
       }
@@ -96,6 +106,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
       res.json(updated);
     } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid progress data", errors: error.errors });
+      }
       res.status(500).json({ message: "Failed to update progress" });
     }
   });

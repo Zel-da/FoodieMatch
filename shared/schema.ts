@@ -76,6 +76,11 @@ export const insertCourseSchema = createInsertSchema(courses).omit({
 export const insertUserProgressSchema = createInsertSchema(userProgress).omit({
   id: true,
   lastAccessed: true,
+}).extend({
+  progress: z.number().min(0).max(100).default(0),
+  currentStep: z.number().min(1).max(3).default(1),
+  timeSpent: z.number().min(0).default(0),
+  completed: z.boolean().default(false),
 });
 
 export const insertAssessmentSchema = createInsertSchema(assessments).omit({
