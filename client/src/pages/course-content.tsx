@@ -25,6 +25,7 @@ export default function CourseContentPage() {
 
   useEffect(() => {
     const userId = localStorage.getItem("currentUserId");
+    console.log("CourseContent - localStorage userId:", userId);
     if (!userId) {
       setLocation(`/course/${courseId}`);
       return;

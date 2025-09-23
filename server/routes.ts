@@ -53,6 +53,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/users/:userId/progress", async (req, res) => {
     try {
       const progress = await storage.getUserAllProgress(req.params.userId);
+      console.log(`[API] Get progress for user ${req.params.userId}:`, progress);
       res.json(progress);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch user progress" });
@@ -75,6 +76,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update user progress
   app.put("/api/users/:userId/progress/:courseId", async (req, res) => {
     try {
+      console.log(`[API] Update progress for user ${req.params.userId}, course ${req.params.courseId}:`, req.body);
+      
       const progressUpdateSchema = insertUserProgressSchema.partial().extend({
         progress: z.number().min(0).max(100).optional(),
         currentStep: z.number().min(1).max(3).optional(),
@@ -86,6 +89,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Check if progress exists, create if not
       const existing = await storage.getUserProgress(req.params.userId, req.params.courseId);
+      console.log(`[API] Existing progress:`, existing);
       
       if (!existing) {
         const newProgress = await storage.createUserProgress({
@@ -96,6 +100,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           timeSpent: progressData.timeSpent || 0,
           completed: progressData.completed || false,
         });
+        console.log(`[API] Created new progress:`, newProgress);
         return res.json(newProgress);
       }
 
@@ -104,6 +109,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         req.params.courseId,
         progressData
       );
+      console.log(`[API] Updated progress:`, updated);
       res.json(updated);
     } catch (error) {
       if (error instanceof z.ZodError) {

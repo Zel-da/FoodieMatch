@@ -16,6 +16,8 @@ export function CourseCard({ course, progress, onStartCourse }: CourseCardProps)
   const courseType = COURSE_TYPES[course.type as keyof typeof COURSE_TYPES];
   const progressPercent = progress?.progress || 0;
   const isCompleted = progress?.completed || false;
+  
+  console.log(`CourseCard ${course.id}:`, { progress, progressPercent, isCompleted });
 
   const getButtonConfig = () => {
     switch (course.type) {

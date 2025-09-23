@@ -69,6 +69,10 @@ export default function Dashboard() {
     enabled: !!currentUser,
   });
 
+  // Debug logging
+  console.log("Dashboard - Current User:", currentUser);
+  console.log("Dashboard - User Progress:", userProgress);
+
   const handleStartCourse = (courseId: string) => {
     // Navigate to course page
     window.location.href = `/course/${courseId}`;
@@ -188,6 +192,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8" data-testid="course-cards">
           {courses.map((course) => {
             const progress = userProgress.find(p => p.courseId === course.id);
+            console.log(`Course ${course.id} progress:`, progress);
             return (
               <CourseCard
                 key={course.id}
