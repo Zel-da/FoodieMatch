@@ -27,7 +27,7 @@ export default function AssessmentPage() {
   const [assessmentResult, setAssessmentResult] = useState<UserAssessment | null>(null);
 
   useEffect(() => {
-    const userId = sessionStorage.getItem("currentUserId");
+    const userId = localStorage.getItem("currentUserId");
     if (!userId) {
       setLocation(`/course/${courseId}`);
       return;

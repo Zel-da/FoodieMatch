@@ -53,8 +53,8 @@ export default function CoursePage() {
         description: "교육을 시작할 수 있습니다.",
       });
       
-      // Store user ID in session storage for this demo
-      sessionStorage.setItem("currentUserId", user.id);
+      // Store user ID in local storage for this demo
+      localStorage.setItem("currentUserId", user.id);
       
       // Navigate to course content
       setLocation(`/course/${courseId}/content`);

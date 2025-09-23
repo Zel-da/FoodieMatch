@@ -24,7 +24,7 @@ export default function CourseContentPage() {
   const [currentStep, setCurrentStep] = useState(1);
 
   useEffect(() => {
-    const userId = sessionStorage.getItem("currentUserId");
+    const userId = localStorage.getItem("currentUserId");
     if (!userId) {
       setLocation(`/course/${courseId}`);
       return;
