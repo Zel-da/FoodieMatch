@@ -5,9 +5,14 @@ import session from "express-session";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 import { storage } from "./storage";
 import { insertUserSchema, insertUserProgressSchema, insertUserAssessmentSchema } from "@shared/schema";
 import { z } from "zod";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 declare module "express-session" {
   interface SessionData {
