@@ -215,7 +215,7 @@ export default function Dashboard() {
                 <div>
                   <h3 className="font-semibold korean-text">진도 관리 시스템</h3>
                   <p className="text-sm text-muted-foreground korean-text">
-                    이해와 기본 개인별 학습 진도 저장으로 언제든지 중단된 부분부터 재개 가능
+                    개인별 학습 진도를 저장하여 언제든지 중단된 부분부터 재개할 수 있습니다.
                   </p>
                 </div>
               </div>
@@ -231,7 +231,7 @@ export default function Dashboard() {
                 <div>
                   <h3 className="font-semibold korean-text">연수 교육 시스템</h3>
                   <p className="text-sm text-muted-foreground korean-text">
-                    7분간 찾인 변수 연수 교육으로 김송흐 변형 하지 정경 절 밤저고 만음
+                    다양한 멀티미디어 자료를 통해 실제 현장과 같은 생생한 교육을 경험하세요.
                   </p>
                 </div>
               </div>
@@ -247,7 +247,7 @@ export default function Dashboard() {
                 <div>
                   <h3 className="font-semibold korean-text">이수증 발급</h3>
                   <p className="text-sm text-muted-foreground korean-text">
-                    교육 완료 후 하습 이수증 발급
+                    모든 교육 과정을 완료하고 평가에 통과하면 공식 이수증이 발급됩니다.
                   </p>
                 </div>
               </div>
@@ -273,8 +273,8 @@ export default function Dashboard() {
               </h3>
               <div className="bg-secondary p-4 rounded-lg">
                 <p className="text-sm text-muted-foreground mb-4 korean-text">
-                  본 플랫폼은 산업안전관리법에 따른 안전교육을 온라인으로 제공하는 시스템입니다. 
-                  고층 이상 수 인증서를 동해 교취하습을 받다할 수 있습니다.
+                  본 플랫폼은 산업안전보건법에 따른 필수 안전교육을 온라인으로 편리하게 이수할 수 있도록 지원하는 시스템입니다. 
+                  체계적인 교육 과정을 통해 안전 지식을 함양하고 인증서를 발급받으세요.
                 </p>
                 
                 {/* Program Types */}

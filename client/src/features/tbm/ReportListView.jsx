@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import API_BASE_URL from './apiConfig';
 import { Button } from '../../components/ui/Button';
@@ -18,13 +18,13 @@ const ReportListView = ({ onSelectReport }) => {
             .catch(error => console.error("Error fetching teams:", error));
     }, []);
 
-    const fetchReports = () => {
+    const fetchReports = useCallback(() => {
         setLoading(true);
         axios.get(`${API_BASE_URL}/api/reports`, { params: filters })
             .then(response => setReports(response.data))
             .catch(error => console.error("Error fetching reports:", error))
             .finally(() => setLoading(false));
-    };
+    }, [filters]);
 
     useEffect(() => {
         if (filters.date) {

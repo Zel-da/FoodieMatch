@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ProgressRing } from "./progress-ring";
-import { Play, Book, CheckCircle } from "lucide-react";
+import { Play, Book, CheckCircle, HardHat, AlertTriangle } from "lucide-react";
 import { Course, UserProgress } from "@shared/schema";
 import { COURSE_TYPES } from "@/lib/constants";
 
@@ -17,34 +17,16 @@ export function CourseCard({ course, progress, onStartCourse }: CourseCardProps)
   const progressPercent = progress?.progress || 0;
   const isCompleted = progress?.completed || false;
   
-  console.log(`CourseCard ${course.id}:`, { progress, progressPercent, isCompleted });
-
   const getButtonConfig = () => {
     switch (course.type) {
       case 'workplace-safety':
-        return {
-          text: '교육 시작하기',
-          icon: Play,
-          testId: 'button-start-workplace-safety'
-        };
+        return { text: '교육 시작하기', icon: Play, testId: 'button-start-workplace-safety' };
       case 'hazard-prevention':
-        return {
-          text: '교육 자료 보기 시작',
-          icon: Book,
-          testId: 'button-start-hazard-prevention'
-        };
+        return { text: '교육 자료 보기', icon: Book, testId: 'button-start-hazard-prevention' };
       case 'tbm':
-        return {
-          text: 'TBM 교육 받기',
-          icon: CheckCircle,
-          testId: 'button-start-tbm'
-        };
+        return { text: 'TBM 교육 받기', icon: CheckCircle, testId: 'button-start-tbm' };
       default:
-        return {
-          text: '교육 시작하기',
-          icon: Play,
-          testId: 'button-start-course'
-        };
+        return { text: '교육 시작하기', icon: Play, testId: 'button-start-course' };
     }
   };
 
@@ -53,14 +35,14 @@ export function CourseCard({ course, progress, onStartCourse }: CourseCardProps)
 
   return (
     <Card 
-      className="overflow-hidden hover:shadow-lg transition-all duration-200 hover:-translate-y-1"
+      className="overflow-hidden hover:shadow-lg transition-all duration-200 hover:-translate-y-1 flex flex-col"
       data-testid={`course-card-${course.type}`}
     >
-      <CardContent className="p-6">
+      <CardContent className="p-6 flex-grow flex flex-col">
         <div className={`flex items-center justify-center w-16 h-16 ${courseType.bgColor} rounded-full mb-4 mx-auto`}>
           <div className={`${courseType.textColor} text-2xl`}>
-            {course.type === 'workplace-safety' && <div className="i-fas-hard-hat" />}
-            {course.type === 'hazard-prevention' && <div className="i-fas-exclamation-triangle" />}
+            {course.type === 'workplace-safety' && <HardHat className="w-8 h-8" />}
+            {course.type === 'hazard-prevention' && <AlertTriangle className="w-8 h-8" />}
             {course.type === 'tbm' && <CheckCircle className="w-8 h-8" />}
           </div>
         </div>
@@ -72,15 +54,6 @@ export function CourseCard({ course, progress, onStartCourse }: CourseCardProps)
           {course.title}
         </h3>
 
-        {course.type === 'hazard-prevention' && (
-          <Badge 
-            className={`${courseType.bgColor} ${courseType.textColor} mb-4 mx-auto block w-fit`}
-            data-testid="course-date-badge"
-          >
-            2022.10.18 개정 시행
-          </Badge>
-        )}
-
         {course.type === 'tbm' && (
           <Badge 
             className={`${courseType.bgColor} ${courseType.textColor} mb-4 mx-auto block w-fit`}
@@ -91,65 +64,62 @@ export function CourseCard({ course, progress, onStartCourse }: CourseCardProps)
         )}
 
         <p 
-          className="text-sm text-muted-foreground text-center mb-6 korean-text" 
+          className="text-sm text-muted-foreground text-center mb-6 korean-text flex-grow" 
           data-testid={`course-description-${course.type}`}
         >
           {course.description}
         </p>
 
-        {/* Progress Ring for workplace safety */}
         {course.type === 'workplace-safety' && (
-          <div className="flex justify-center mb-4">
+          <div className="flex justify-center my-4">
             <ProgressRing progress={progressPercent} />
           </div>
         )}
 
-        {/* Additional info for hazard prevention */}
         {course.type === 'hazard-prevention' && (
           <div className="grid grid-cols-2 gap-4 mt-4 text-xs mb-6" data-testid="hazard-prevention-info">
             <div>
-              <div className={`font-medium ${courseType.textColor}`}>중요공지</div>
-              <div>사업주의 통제</div>
+              <div className={`font-medium ${courseType.textColor}`}>[Key Notice #1]</div>
+              <div>[Notice Content]</div>
             </div>
             <div>
-              <div className={`font-medium ${courseType.textColor}`}>중요공지</div>
-              <div>무원문제유형</div>
+              <div className={`font-medium ${courseType.textColor}`}>[Key Notice #2]</div>
+              <div>[Notice Content]</div>
             </div>
             <div>
-              <div className={`font-medium ${courseType.textColor}`}>공지사항</div>
-              <div>최소안전관리</div>
+              <div className={`font-medium ${courseType.textColor}`}>[Guideline #1]</div>
+              <div>[Guideline Content]</div>
             </div>
             <div>
-              <div className={`font-medium ${courseType.textColor}`}>기술지침</div>
-              <div>지침절차의 확정</div>
+              <div className={`font-medium ${courseType.textColor}`}>[Guideline #2]</div>
+              <div>[Guideline Content]</div>
             </div>
           </div>
         )}
 
-        {/* Additional info for TBM */}
         {course.type === 'tbm' && (
           <div className="grid grid-cols-2 gap-4 text-xs mb-6" data-testid="tbm-info">
             <div>
-              <div className={`font-medium ${courseType.textColor}`}>10월 일정</div>
-              <div>요일시 진행</div>
+              <div className={`font-medium ${courseType.textColor}`}>[Schedule Info]</div>
+              <div>[Schedule Details]</div>
             </div>
             <div>
-              <div className={`font-medium ${courseType.textColor}`}>위험성평가</div>
-              <div>기업 시설수업</div>
+              <div className={`font-medium ${courseType.textColor}`}>[Risk Assessment]</div>
+              <div>[Assessment Topic]</div>
             </div>
             <div>
-              <div className={`font-medium ${courseType.textColor}`}>예방메모</div>
-              <div>확장 국유이론</div>
+              <div className={`font-medium ${courseType.textColor}`}>[Prevention Memo]</div>
+              <div>[Memo Content]</div>
             </div>
             <div>
-              <div className={`font-medium ${courseType.textColor}`}>소통개선</div>
-              <div>현과그 간업</div>
+              <div className={`font-medium ${courseType.textColor}`}>[Communication]</div>
+              <div>[Communication Topic]</div>
             </div>
           </div>
         )}
 
         <Button
-          className={`w-full ${courseType.buttonColor} text-white py-3 rounded-lg font-medium transition-colors flex items-center justify-center korean-text`}
+          className={`w-full ${courseType.buttonColor} text-white py-3 rounded-lg font-medium transition-colors flex items-center justify-center korean-text mt-auto`}
           onClick={() => onStartCourse(course.id)}
           data-testid={buttonConfig.testId}
         >
