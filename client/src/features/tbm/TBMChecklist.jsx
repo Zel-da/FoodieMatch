@@ -3,7 +3,7 @@ import SignatureCanvas from 'react-signature-canvas';
 import axios from 'axios';
 import API_BASE_URL from './apiConfig';
 import { Button } from '../../components/ui/Button';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '../../components/ui/Card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '../../components/ui/Card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/ui/Table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/Select';
 import { Textarea } from '../../components/ui/Textarea';
