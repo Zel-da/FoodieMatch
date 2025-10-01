@@ -12,6 +12,8 @@ import AssessmentPage from "@/pages/assessment";
 import TbmPage from "@/pages/TbmPage";
 import LoginPage from "@/pages/LoginPage";
 import RegisterPage from "@/pages/RegisterPage";
+import NoticeDetailPage from "@/pages/NoticeDetailPage";
+import NoticeEditor from "@/pages/NoticeEditor";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -25,6 +27,9 @@ function Router() {
       <Route path="/course/:id" component={CoursePage} />
       <Route path="/course/:id/content" component={CourseContentPage} />
       <Route path="/assessment/:id" component={AssessmentPage} />
+      <Route path="/notices/:id" component={NoticeDetailPage} />
+      <Route path="/notices/new" component={NoticeEditor} />
+      <Route path="/notices/edit/:id" component={NoticeEditor} />
       <Route component={NotFound} />
     </Switch>
   );

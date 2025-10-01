@@ -96,6 +96,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // NOTICE ROUTES
+  app.get("/api/notices", async (req, res) => {
+    try {
+      const notices = await storage.getAllNotices();
+      res.json(notices);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch notices" });
+    }
+  });
+
+  app.get("/api/notices/:id", async (req, res) => {
+    try {
+      const notice = await storage.getNotice(req.params.id);
+      if (!notice) {
+        return res.status(404).json({ message: "Notice not found" });
+      }
+      res.json(notice);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch notice" });
+    }
+  });
+
+  // Middleware to check for admin role
+  const isAdmin = (req, res, next) => {
+    if (req.session.user && req.session.user.role === 'admin') {
+      next();
+    } else {
+      res.status(403).json({ message: "Forbidden: Admins only" });
+    }
+  };
+
+  app.post("/api/notices", isAdmin, async (req, res) => {
+    try {
+      const noticeData = insertNoticeSchema.parse({
+        ...req.body,
+        authorId: req.session.user.id,
+      });
+      const newNotice = await storage.createNotice(noticeData);
+      res.status(201).json(newNotice);
+    } catch (error) {
+        if (error instanceof z.ZodError) {
+            return res.status(400).json({ message: "Invalid notice data", errors: error.errors });
+        }
+        res.status(500).json({ message: "Failed to create notice" });
+    }
+  });
+
+  app.put("/api/notices/:id", isAdmin, async (req, res) => {
+    try {
+        const noticeData = insertNoticeSchema.partial().parse(req.body);
+        const updatedNotice = await storage.updateNotice(req.params.id, noticeData);
+        res.json(updatedNotice);
+    } catch (error) {
+        if (error instanceof z.ZodError) {
+            return res.status(400).json({ message: "Invalid notice data", errors: error.errors });
+        }
+        res.status(500).json({ message: "Failed to update notice" });
+    }
+  });
+
+  app.delete("/api/notices/:id", isAdmin, async (req, res) => {
+    try {
+        await storage.deleteNotice(req.params.id);
+        res.status(204).send();
+    } catch (error) {
+        res.status(500).json({ message: "Failed to delete notice" });
+    }
+  });
+
+
   // Get user progress for all courses
   app.get("/api/users/:userId/progress", async (req, res) => {
     try {
