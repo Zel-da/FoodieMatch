@@ -13,13 +13,15 @@ import {
   type InsertCertificate
 } from "@shared/schema";
 import { randomUUID } from "crypto";
+import bcrypt from "bcrypt";
 
 export interface IStorage {
   // Users
   getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-  
+  validateUser(email: string, password: string): Promise<User | null>;
+
   // Courses
   getAllCourses(): Promise<Course[]>;
   getCourse(id: string): Promise<Course | undefined>;
@@ -63,7 +65,20 @@ export class MemStorage implements IStorage {
     this.initializeData();
   }
 
-  private initializeData() {
+  private async initializeData() {
+    // Initialize admin user
+    const adminPassword = await bcrypt.hash('admin123', 10);
+    const adminUser: User = {
+      id: 'admin-user',
+      username: '관리자',
+      email: 'admin@example.com',
+      password: adminPassword,
+      department: 'IT',
+      role: 'admin',
+      createdAt: new Date(),
+    };
+    this.users.set(adminUser.id, adminUser);
+
     // Initialize courses
     const defaultCourses: Course[] = [
       {
@@ -151,13 +166,24 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = randomUUID();
+    const hashedPassword = await bcrypt.hash(insertUser.password, 10);
     const user: User = { 
       ...insertUser, 
       id,
+      password: hashedPassword,
       createdAt: new Date(),
     };
     this.users.set(id, user);
     return user;
+  }
+
+  async validateUser(email: string, password: string): Promise<User | null> {
+    const user = await this.getUserByEmail(email);
+    if (!user) {
+      return null;
+    }
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    return isPasswordValid ? user : null;
   }
 
   // Courses

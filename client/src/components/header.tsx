@@ -1,6 +1,10 @@
-import { Shield, Gauge, Book, Bell, User, ClipboardCheck, BookOpen, Home } from "lucide-react";
+import { Shield, Gauge, Book, Bell, User, ClipboardCheck, BookOpen, Home, LogOut, LogIn } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { Button } from "./ui/Button";
 
 export function Header() {
+  const { user, logout } = useAuth();
+
   return (
     <header className="bg-card border-b border-border shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -18,7 +22,7 @@ export function Header() {
           <nav className="hidden md:flex items-center space-x-6">
             <a 
               href="/" 
-              className="text-sm font-medium text-foreground hover:text-primary transition-colors flex items-center"
+              className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors flex items-center"
               data-testid="nav-main"
             >
               <Home className="w-4 h-4 mr-2" />
@@ -40,25 +44,32 @@ export function Header() {
               <ClipboardCheck className="w-4 h-4 mr-2" />
               TBM 안전점검
             </a>
-            <a 
-              href="#" 
-              className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors flex items-center"
-              data-testid="nav-help"
-            >
-              <Book className="w-4 h-4 mr-2" />
-              도움말
-            </a>
+            
             <div className="flex items-center space-x-3">
-              <button 
-                className="p-2 text-muted-foreground hover:text-foreground transition-colors"
-                data-testid="notification-button"
-              >
-                <Bell className="w-4 h-4" />
-              </button>
-              <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                <User className="text-primary-foreground w-4 h-4" />
-              </div>
-              <span className="text-sm font-medium korean-text" data-testid="user-name">관리자</span>
+              {user ? (
+                <>
+                  <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                    <User className="text-primary-foreground w-4 h-4" />
+                  </div>
+                  <span className="text-sm font-medium korean-text" data-testid="user-name">{user.username}</span>
+                  <Button variant="ghost" size="sm" onClick={logout}>
+                    <LogOut className="w-4 h-4 mr-2" />
+                    로그아웃
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button variant="ghost" asChild>
+                    <a href="/login">
+                      <LogIn className="w-4 h-4 mr-2" />
+                      로그인
+                    </a>
+                  </Button>
+                  <Button asChild>
+                     <a href="/register">회원가입</a>
+                  </Button>
+                </>
+              )}
             </div>
           </nav>
         </div>

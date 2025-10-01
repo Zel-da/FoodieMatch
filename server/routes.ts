@@ -1,10 +1,78 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import session from "express-session";
 import { storage } from "./storage";
 import { insertUserSchema, insertUserProgressSchema, insertUserAssessmentSchema } from "@shared/schema";
 import { z } from "zod";
 
+declare module "express-session" {
+  interface SessionData {
+    user: { id: string; username: string; role: string };
+  }
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
+
+  app.use(session({
+    secret: 'a-very-secret-key-that-should-be-in-env-vars',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: false, httpOnly: true, maxAge: 1000 * 60 * 60 * 24 } // Use secure: true in production with HTTPS
+  }));
+
+  // AUTH ROUTES
+  app.post("/api/auth/register", async (req, res) => {
+    try {
+      const userData = insertUserSchema.parse(req.body);
+      const existingUser = await storage.getUserByEmail(userData.email);
+      if (existingUser) {
+        return res.status(409).json({ message: "User with this email already exists" });
+      }
+      const user = await storage.createUser(userData);
+      // Exclude password from the returned user object
+      const { password, ...userWithoutPassword } = user;
+      res.status(201).json(userWithoutPassword);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid user data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create user" });
+    }
+  });
+
+  app.post("/api/auth/login", async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      const user = await storage.validateUser(email, password);
+      if (!user) {
+        return res.status(401).json({ message: "Invalid email or password" });
+      }
+      req.session.user = { id: user.id, username: user.username, role: user.role };
+      const { password: _, ...userWithoutPassword } = user;
+      res.json(userWithoutPassword);
+    } catch (error) {
+      res.status(500).json({ message: "Login failed" });
+    }
+  });
+
+  app.post("/api/auth/logout", (req, res) => {
+    req.session.destroy((err) => {
+      if (err) {
+        return res.status(500).json({ message: "Logout failed" });
+      }
+      res.clearCookie('connect.sid'); // The default session cookie name
+      res.status(200).json({ message: "Logged out successfully" });
+    });
+  });
+
+  app.get("/api/auth/me", (req, res) => {
+    if (req.session.user) {
+      res.json(req.session.user);
+    } else {
+      res.status(401).json({ message: "Not authenticated" });
+    }
+  });
+
   // Get all courses
   app.get("/api/courses", async (req, res) => {
     try {
@@ -25,27 +93,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(course);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch course" });
-    }
-  });
-
-  // Create or get user
-  app.post("/api/users", async (req, res) => {
-    try {
-      const userData = insertUserSchema.parse(req.body);
-      
-      // Check if user already exists
-      const existingUser = await storage.getUserByEmail(userData.email);
-      if (existingUser) {
-        return res.json(existingUser);
-      }
-
-      const user = await storage.createUser(userData);
-      res.status(201).json(user);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid user data", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to create user" });
     }
   });
 

@@ -64,9 +64,17 @@ export const certificates = pgTable("certificates", {
 });
 
 // Insert schemas
-export const insertUserSchema = createInsertSchema(users).omit({
-  id: true,
-  createdAt: true,
+export const insertUserSchema = z.object({
+  username: z.string(),
+  email: z.string().email(),
+  password: z.string().min(8),
+  department: z.string(),
+  role: z.enum(['admin', 'user']).default('user'),
+});
+
+export const userSchema = insertUserSchema.extend({
+  id: z.string(),
+  createdAt: z.date(),
 });
 
 export const insertCourseSchema = createInsertSchema(courses).omit({
@@ -114,4 +122,22 @@ export type UserAssessment = typeof userAssessments.$inferSelect;
 export type InsertUserAssessment = z.infer<typeof insertUserAssessmentSchema>;
 
 export type Certificate = typeof certificates.$inferSelect;
-export type InsertCertificate = z.infer<typeof insertCertificateSchema>;
+  id: z.string(),
+  issuedAt: z.date(),
+});
+
+// Notice Board Schemas
+export const insertNoticeSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  content: z.string().min(1, "Content is required"),
+  authorId: z.string(),
+});
+
+export const noticeSchema = insertNoticeSchema.extend({
+  id: z.string(),
+  createdAt: z.date(),
+  viewCount: z.number().default(0),
+});
+
+export type Notice = z.infer<typeof noticeSchema>;
+export type InsertNotice = z.infer<typeof insertNoticeSchema>;
