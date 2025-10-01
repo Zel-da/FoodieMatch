@@ -7,7 +7,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/ui/Table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/Select';
 import { Textarea } from '../../components/ui/Textarea';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from '../../components/ui/Dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from '../../components/ui/Dialog';
 import { Label } from '../../components/ui/Label';
 
 const TBMChecklist = ({ reportIdForEdit, onFinishEditing }) => {
@@ -121,6 +121,7 @@ const TBMChecklist = ({ reportIdForEdit, onFinishEditing }) => {
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>{user.userName} 님, 서명해주세요.</DialogTitle>
+                    <DialogDescription>아래 영역에 서명을 진행해주세요. 완료 후 저장 버튼을 누르세요.</DialogDescription>
                 </DialogHeader>
                 <div className="border rounded-md bg-white">
                     <SignatureCanvas ref={sigPad} penColor='black' canvasProps={{ className: 'w-full h-[200px]' }} />
@@ -207,7 +208,7 @@ const TBMChecklist = ({ reportIdForEdit, onFinishEditing }) => {
                                                     <DialogTrigger asChild>
                                                         <Button variant="secondary" onClick={() => setCurrentUserForSigning(user)}>서명하기</Button>
                                                     </DialogTrigger>
-                                                    {currentUserForSigning?.userID === user.userID && <SignatureDialog user={user} onSave={setSignatures} />} 
+                                                    {currentUserForSigning?.userID === user.userID && <SignatureDialog user={user} onSave={handleSaveSignature} />} 
                                                 </Dialog>
                                             }
                                         </li>
