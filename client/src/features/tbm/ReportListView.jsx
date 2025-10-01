@@ -9,7 +9,7 @@ import { Label } from '../../components/ui/Label';
 const ReportListView = ({ onSelectReport }) => {
     const [reports, setReports] = useState([]);
     const [teams, setTeams] = useState([]);
-    const [filters, setFilters] = useState({ date: '', teamId: '' });
+    const [filters, setFilters] = useState({ date: new Date().toISOString().slice(0, 10), teamId: '' });
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
