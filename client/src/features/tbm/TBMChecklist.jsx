@@ -81,6 +81,7 @@ const TBMChecklist = ({ reportIdForEdit, onFinishEditing }) => {
     }, [selectedTeam, isEditMode]);
 
     const handleCheck = (itemId, value) => setCheckResults(prev => ({ ...prev, [itemId]: value }));
+    const handleSaveSignature = (userId, signatureImage) => setSignatures(prev => ({ ...prev, [userId]: signatureImage }));
 
     const handleSubmit = async () => {
         if (checklistData && Object.keys(checkResults).length !== checklistData.items.length) {
