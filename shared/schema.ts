@@ -131,6 +131,9 @@ export const insertNoticeSchema = z.object({
   title: z.string().min(1, "Title is required"),
   content: z.string().min(1, "Content is required"),
   authorId: z.string(),
+  imageUrl: z.string().optional(),
+  attachmentUrl: z.string().optional(),
+  attachmentName: z.string().optional(),
 });
 
 export const noticeSchema = insertNoticeSchema.extend({

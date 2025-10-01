@@ -1,11 +1,14 @@
 import { Header } from "@/components/header";
 import { useQuery } from "@tanstack/react-query";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
+import { useAuth } from "@/context/AuthContext";
+import { Button } from "@/components/ui/Button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Notice } from "@shared/schema";
 import { Link } from "wouter";
 
 export default function HomePage() {
+  const { user } = useAuth();
   const { data: notices = [], isLoading } = useQuery<Notice[]>({
     queryKey: ["/api/notices"],
   });
@@ -20,8 +23,13 @@ export default function HomePage() {
         </div>
 
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>공지사항</CardTitle>
+            {user?.role === 'admin' && (
+              <Button asChild>
+                <Link href="/notices/new">새 공지사항 작성</Link>
+              </Button>
+            )}
           </CardHeader>
           <CardContent>
             {isLoading ? (

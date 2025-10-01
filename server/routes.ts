@@ -1,6 +1,9 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import session from "express-session";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 import { storage } from "./storage";
 import { insertUserSchema, insertUserProgressSchema, insertUserAssessmentSchema } from "@shared/schema";
 import { z } from "zod";
@@ -12,6 +15,16 @@ declare module "express-session" {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+
+  // Serve uploaded files statically
+  app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+  // Multer setup for file uploads
+  const uploadDir = path.join(__dirname, 'uploads');
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+  }
+  const upload = multer({ dest: uploadDir });
 
   app.use(session({
     secret: 'a-very-secret-key-that-should-be-in-env-vars',
@@ -29,7 +42,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(409).json({ message: "User with this email already exists" });
       }
       const user = await storage.createUser(userData);
-      // Exclude password from the returned user object
       const { password, ...userWithoutPassword } = user;
       res.status(201).json(userWithoutPassword);
     } catch (error) {
@@ -60,7 +72,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (err) {
         return res.status(500).json({ message: "Logout failed" });
       }
-      res.clearCookie('connect.sid'); // The default session cookie name
+      res.clearCookie('connect.sid');
       res.status(200).json({ message: "Logged out successfully" });
     });
   });
@@ -71,6 +83,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } else {
       res.status(401).json({ message: "Not authenticated" });
     }
+  });
+
+  // UPLOAD ROUTE
+  app.post("/api/upload", upload.single('file'), (req, res) => {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded.' });
+    }
+    const fileUrl = `/uploads/${req.file.filename}`;
+    res.status(200).json({ url: fileUrl, name: req.file.originalname });
   });
 
   // Get all courses
