@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import API_BASE_URL from './apiConfig';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../../components/ui/Card';
+import { Button } from '../../components/ui/Button';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
 import { Label } from '../../components/ui/Label';
 
@@ -74,15 +75,20 @@ const ReportListView = ({ onSelectReport }) => {
             ) : (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {reports.length > 0 ? reports.map(report => (
-                        <Card key={report.reportID} onClick={() => onSelectReport(report.reportID)} className="cursor-pointer transition-all hover:shadow-md hover:-translate-y-1">
+                        <Card key={report.reportID} className="flex flex-col">
                             <CardHeader>
                                 <CardTitle>점검표 #{report.reportID}</CardTitle>
                                 <CardDescription>{new Date(report.reportDate).toLocaleDateString()}</CardDescription>
                             </CardHeader>
-                            <CardContent className="text-sm text-muted-foreground">
+                            <CardContent className="text-sm text-muted-foreground flex-grow">
                                 <p><b>팀:</b> {report.team?.teamName}</p>
                                 <p><b>작성자:</b> {report.managerName}</p>
                             </CardContent>
+                            <CardFooter>
+                                <Button onClick={() => onSelectReport(report.reportID)} className="w-full">
+                                    상세 보기
+                                </Button>
+                            </CardFooter>
                         </Card>
                     )) : (
                         <div className="col-span-full text-center text-muted-foreground py-10">
