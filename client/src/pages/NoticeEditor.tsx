@@ -23,18 +23,46 @@ export default function NoticeEditor() {
     enabled: isEditing,
   });
 
-  const [formData, setFormData] = useState({ title: '', content: '' });
+  const [formData, setFormData] = useState({ title: '', content: '', imageUrl: '', attachmentUrl: '', attachmentName: '' });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
   useEffect(() => {
     if (isEditing && noticeToEdit) {
-      setFormData({ title: noticeToEdit.title, content: noticeToEdit.content });
+      setFormData({
+        title: noticeToEdit.title,
+        content: noticeToEdit.content,
+        imageUrl: noticeToEdit.imageUrl || '',
+        attachmentUrl: noticeToEdit.attachmentUrl || '',
+        attachmentName: noticeToEdit.attachmentName || '',
+      });
     }
   }, [isEditing, noticeToEdit]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, fileType: 'image' | 'attachment') => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const uploadFormData = new FormData();
+    uploadFormData.append('file', file);
+
+    try {
+      const response = await fetch('/api/upload', { method: 'POST', body: uploadFormData });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'File upload failed');
+
+      if (fileType === 'image') {
+        setFormData(prev => ({ ...prev, imageUrl: data.url }));
+      } else {
+        setFormData(prev => ({ ...prev, attachmentUrl: data.url, attachmentName: data.name }));
+      }
+    } catch (err) {
+      setError((err as Error).message);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -53,12 +81,8 @@ export default function NoticeEditor() {
       });
 
       const data = await response.json();
+      if (!response.ok) throw new Error(data.message || '저장에 실패했습니다.');
 
-      if (!response.ok) {
-        throw new Error(data.message || '저장에 실패했습니다.');
-      }
-
-      // Invalidate queries to refetch data on other pages
       queryClient.invalidateQueries({ queryKey: ['/api/notices'] });
       if (isEditing) {
         queryClient.invalidateQueries({ queryKey: [`/api/notices/${noticeId}`] });
@@ -102,6 +126,16 @@ export default function NoticeEditor() {
               <div className="space-y-2">
                 <Label htmlFor="content">내용</Label>
                 <Textarea id="content" name="content" required value={formData.content} onChange={handleChange} rows={10} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="image">이미지 업로드</Label>
+                <Input id="image" type="file" onChange={(e) => handleFileChange(e, 'image')} />
+                {formData.imageUrl && <img src={formData.imageUrl} alt="Preview" className="mt-2 rounded-md max-h-48" />}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="attachment">파일 첨부</Label>
+                <Input id="attachment" type="file" onChange={(e) => handleFileChange(e, 'attachment')} />
+                {formData.attachmentName && <p className="text-sm text-muted-foreground mt-2">첨부된 파일: {formData.attachmentName}</p>}
               </div>
               {error && <p className="text-sm text-destructive">{error}</p>}
               {success && <p className="text-sm text-green-600">{success}</p>}

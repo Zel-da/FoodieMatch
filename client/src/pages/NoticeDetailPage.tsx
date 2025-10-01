@@ -69,7 +69,17 @@ export default function NoticeDetailPage() {
               </div>
             </CardHeader>
             <CardContent className="prose max-w-none mt-6">
+              {notice.imageUrl && <img src={notice.imageUrl} alt={notice.title} className="max-w-full rounded-md mb-4" />}
               <p>{notice.content}</p>
+              {notice.attachmentUrl && (
+                <div className="mt-6">
+                  <Button asChild variant="outline">
+                    <a href={notice.attachmentUrl} download={notice.attachmentName || true}>
+                      첨부파일 다운로드: {notice.attachmentName}
+                    </a>
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
