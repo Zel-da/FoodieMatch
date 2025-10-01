@@ -1,4 +1,4 @@
-import { Shield, Gauge, Book, Bell, User, ClipboardCheck } from "lucide-react";
+import { Shield, Gauge, Book, Bell, User, ClipboardCheck, BookOpen } from "lucide-react";
 
 export function Header() {
   return (
@@ -17,12 +17,12 @@ export function Header() {
 
           <nav className="hidden md:flex items-center space-x-6">
             <a 
-              href="/" 
+              href="/education" 
               className="text-sm font-medium text-foreground hover:text-primary transition-colors flex items-center"
-              data-testid="nav-dashboard"
+              data-testid="nav-education"
             >
-              <Gauge className="w-4 h-4 mr-2" />
-              대시보드
+              <BookOpen className="w-4 h-4 mr-2" />
+              안전교육
             </a>
             <a 
               href="/tbm" 
