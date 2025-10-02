@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import API_BASE_URL from './apiConfig';
+import apiClient from './apiConfig';
 import { Button } from '../../components/ui/Button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '../../components/ui/Card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/ui/Table';
@@ -14,7 +13,7 @@ const ReportDetailView = ({ reportId, onBackToList, onModify }) => {
         if (!reportId) return;
 
         setLoading(true);
-        axios.get(`${API_BASE_URL}/api/reports/${reportId}`)
+        apiClient.get(`/api/reports/${reportId}`)
             .then(response => setReport(response.data))
             .catch(error => console.error(`Error fetching report ${reportId}:`, error))
             .finally(() => setLoading(false));
@@ -23,7 +22,7 @@ const ReportDetailView = ({ reportId, onBackToList, onModify }) => {
     const handleDelete = async () => {
         if (window.confirm(`정말로 이 점검표(ID: ${reportId})를 삭제하시겠습니까?`)) {
             try {
-                await axios.delete(`${API_BASE_URL}/api/reports/${reportId}`);
+                await apiClient.delete(`/api/reports/${reportId}`);
                 alert("점검표가 성공적으로 삭제되었습니다.");
                 onBackToList();
             } catch (error) {

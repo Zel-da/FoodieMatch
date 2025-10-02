@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
-import API_BASE_URL from './apiConfig';
+import apiClient from './apiConfig';
 import { Button } from '../../components/ui/Button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
@@ -13,14 +12,14 @@ const ReportListView = ({ onSelectReport }) => {
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        axios.get(`${API_BASE_URL}/api/teams`)
+        apiClient.get('/api/teams')
             .then(response => setTeams(response.data))
             .catch(error => console.error("Error fetching teams:", error));
     }, []);
 
     const fetchReports = useCallback(() => {
         setLoading(true);
-        axios.get(`${API_BASE_URL}/api/reports`, { params: filters })
+        apiClient.get('/api/reports', { params: filters })
             .then(response => setReports(response.data))
             .catch(error => console.error("Error fetching reports:", error))
             .finally(() => setLoading(false));
@@ -64,7 +63,7 @@ const ReportListView = ({ onSelectReport }) => {
                         className="flex h-10 w-48 items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         <option value="">모든 팀</option>
-                        {teams.map(team => (
+                        {Array.isArray(teams) && teams.map(team => (
                             <option key={team.teamID} value={team.teamID}>{team.teamName}</option>
                         ))}
                     </select>
