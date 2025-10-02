@@ -122,9 +122,6 @@ export type UserAssessment = typeof userAssessments.$inferSelect;
 export type InsertUserAssessment = z.infer<typeof insertUserAssessmentSchema>;
 
 export type Certificate = typeof certificates.$inferSelect;
-  id: z.string(),
-  issuedAt: z.date(),
-});
 
 // Notice Board Schemas
 export const insertNoticeSchema = z.object({
