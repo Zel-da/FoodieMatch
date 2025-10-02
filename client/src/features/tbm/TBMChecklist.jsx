@@ -72,7 +72,7 @@ const TBMChecklist = ({ reportIdForEdit, onFinishEditing }) => {
         const fetchUsers = apiClient.get(`/api/teams/${selectedTeam}/users`);
         Promise.all([fetchChecklist, fetchUsers])
             .then(([checklistRes, usersRes]) => {
-                setChecklistData({ items: checklistRes.data });
+                setChecklistData(checklistRes.data);
                 setUsers(usersRes.data);
             })
             .catch(error => console.error(`Error fetching data for team ${selectedTeam}:`, error))
@@ -174,7 +174,7 @@ const TBMChecklist = ({ reportIdForEdit, onFinishEditing }) => {
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {checklistData.items.map(item => (
+                                        {checklistData.templateItems.map(item => (
                                             <TableRow key={item.itemID}>
                                                 <TableCell>{item.category}</TableCell>
                                                 <TableCell>{item.subCategory}</TableCell>
