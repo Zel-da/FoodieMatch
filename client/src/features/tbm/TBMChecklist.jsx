@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import SignatureCanvas from 'react-signature-canvas';
-import axios from 'axios';
-import API_BASE_URL from './apiConfig';
+import apiClient from './apiConfig';
 import { Button } from '../../components/ui/Button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '../../components/ui/Card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/ui/Table';
@@ -33,7 +32,7 @@ const TBMChecklist = ({ reportIdForEdit, onFinishEditing }) => {
     }
 
     useEffect(() => {
-        axios.get(`${API_BASE_URL}/api/teams`)
+        apiClient.get('/api/teams')
             .then(response => {
                 setTeams(response.data);
                 if (!isEditMode && response.data.length > 0) {
@@ -46,7 +45,7 @@ const TBMChecklist = ({ reportIdForEdit, onFinishEditing }) => {
     useEffect(() => {
         if (isEditMode) {
             setLoading(true);
-            axios.get(`${API_BASE_URL}/api/reports/${reportIdForEdit}`)
+            apiClient.get(`/api/reports/${reportIdForEdit}`)
                 .then(response => {
                     const report = response.data;
                     setSelectedTeam(report.teamID.toString());
@@ -69,8 +68,8 @@ const TBMChecklist = ({ reportIdForEdit, onFinishEditing }) => {
         if (!selectedTeam) return;
         setLoading(true);
         if(!isEditMode) resetState();
-        const fetchChecklist = axios.get(`${API_BASE_URL}/api/checklist/${selectedTeam}`);
-        const fetchUsers = axios.get(`${API_BASE_URL}/api/teams/${selectedTeam}/users`);
+        const fetchChecklist = apiClient.get(`/api/checklist/${selectedTeam}`);
+        const fetchUsers = apiClient.get(`/api/teams/${selectedTeam}/users`);
         Promise.all([fetchChecklist, fetchUsers])
             .then(([checklistRes, usersRes]) => {
                 setChecklistData({ items: checklistRes.data });
@@ -100,11 +99,11 @@ const TBMChecklist = ({ reportIdForEdit, onFinishEditing }) => {
         setIsSubmitting(true);
         try {
             if (isEditMode) {
-                await axios.put(`${API_BASE_URL}/api/reports/${reportIdForEdit}`, submissionData);
+                await apiClient.put(`/api/reports/${reportIdForEdit}`, submissionData);
                 alert("점검표가 성공적으로 수정되었습니다.");
                 onFinishEditing();
             } else {
-                await axios.post(`${API_BASE_URL}/api/reports`, submissionData);
+                await apiClient.post('/api/reports', submissionData);
                 alert(`${teams.find(t => t.teamID === parseInt(selectedTeam)).teamName} 점검표가 성공적으로 제출되었습니다.`);
                 resetState();
             }
@@ -147,7 +146,7 @@ const TBMChecklist = ({ reportIdForEdit, onFinishEditing }) => {
                                 <SelectValue placeholder="팀을 선택하세요" />
                             </SelectTrigger>
                             <SelectContent>
-                                {teams.map(team => <SelectItem key={team.teamID} value={team.teamID.toString()}>{team.teamName}</SelectItem>)}
+                                {Array.isArray(teams) && teams.map(team => <SelectItem key={team.teamID} value={team.teamID.toString()}>{team.teamName}</SelectItem>)}
                             </SelectContent>
                         </Select>
                     </div>
