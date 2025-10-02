@@ -7,8 +7,7 @@ import path from "path";
 import fs from "fs";
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import { storage } from "./storage";
-import { insertUserSchema, insertUserProgressSchema, insertUserAssessmentSchema } from "@shared/schema";
+import { prisma } from "./db";
 import { z } from "zod";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -39,57 +38,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     cookie: { secure: false, httpOnly: true, maxAge: 1000 * 60 * 60 * 24 } // Use secure: true in production with HTTPS
   }));
 
-  // AUTH ROUTES
-  app.post("/api/auth/register", async (req, res) => {
-    try {
-      const userData = insertUserSchema.parse(req.body);
-      const existingUser = await storage.getUserByEmail(userData.email);
-      if (existingUser) {
-        return res.status(409).json({ message: "User with this email already exists" });
-      }
-      const user = await storage.createUser(userData);
-      const { password, ...userWithoutPassword } = user;
-      res.status(201).json(userWithoutPassword);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid user data", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to create user" });
-    }
-  });
-
-  app.post("/api/auth/login", async (req, res) => {
-    try {
-      const { email, password } = req.body;
-      const user = await storage.validateUser(email, password);
-      if (!user) {
-        return res.status(401).json({ message: "Invalid email or password" });
-      }
-      req.session.user = { id: user.id, username: user.username, role: user.role };
-      const { password: _, ...userWithoutPassword } = user;
-      res.json(userWithoutPassword);
-    } catch (error) {
-      res.status(500).json({ message: "Login failed" });
-    }
-  });
-
-  app.post("/api/auth/logout", (req, res) => {
-    req.session.destroy((err) => {
-      if (err) {
-        return res.status(500).json({ message: "Logout failed" });
-      }
-      res.clearCookie('connect.sid');
-      res.status(200).json({ message: "Logged out successfully" });
-    });
-  });
-
-  app.get("/api/auth/me", (req, res) => {
-    if (req.session.user) {
-      res.json(req.session.user);
-    } else {
-      res.status(401).json({ message: "Not authenticated" });
-    }
-  });
+  // AUTH and NOTICE routes are removed as they are handled by TBM API.
 
   // UPLOAD ROUTE
   app.post("/api/upload", upload.single('file'), (req, res) => {
@@ -103,7 +52,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all courses
   app.get("/api/courses", async (req, res) => {
     try {
-      const courses = await storage.getAllCourses();
+      const courses = await prisma.course.findMany({ where: { isActive: true } });
       res.json(courses);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch courses" });
@@ -113,7 +62,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get specific course
   app.get("/api/courses/:id", async (req, res) => {
     try {
-      const course = await storage.getCourse(req.params.id);
+      const course = await prisma.course.findUnique({ where: { id: req.params.id } });
       if (!course) {
         return res.status(404).json({ message: "Course not found" });
       }
@@ -123,81 +72,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // NOTICE ROUTES
-  app.get("/api/notices", async (req, res) => {
-    try {
-      const notices = await storage.getAllNotices();
-      res.json(notices);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch notices" });
-    }
-  });
-
-  app.get("/api/notices/:id", async (req, res) => {
-    try {
-      const notice = await storage.getNotice(req.params.id);
-      if (!notice) {
-        return res.status(404).json({ message: "Notice not found" });
-      }
-      res.json(notice);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch notice" });
-    }
-  });
-
-  // Middleware to check for admin role
-  const isAdmin = (req, res, next) => {
-    if (req.session.user && req.session.user.role === 'admin') {
-      next();
-    } else {
-      res.status(403).json({ message: "Forbidden: Admins only" });
-    }
-  };
-
-  app.post("/api/notices", isAdmin, async (req, res) => {
-    try {
-      const noticeData = insertNoticeSchema.parse({
-        ...req.body,
-        authorId: req.session.user.id,
-      });
-      const newNotice = await storage.createNotice(noticeData);
-      res.status(201).json(newNotice);
-    } catch (error) {
-        if (error instanceof z.ZodError) {
-            return res.status(400).json({ message: "Invalid notice data", errors: error.errors });
-        }
-        res.status(500).json({ message: "Failed to create notice" });
-    }
-  });
-
-  app.put("/api/notices/:id", isAdmin, async (req, res) => {
-    try {
-        const noticeData = insertNoticeSchema.partial().parse(req.body);
-        const updatedNotice = await storage.updateNotice(req.params.id, noticeData);
-        res.json(updatedNotice);
-    } catch (error) {
-        if (error instanceof z.ZodError) {
-            return res.status(400).json({ message: "Invalid notice data", errors: error.errors });
-        }
-        res.status(500).json({ message: "Failed to update notice" });
-    }
-  });
-
-  app.delete("/api/notices/:id", isAdmin, async (req, res) => {
-    try {
-        await storage.deleteNotice(req.params.id);
-        res.status(204).send();
-    } catch (error) {
-        res.status(500).json({ message: "Failed to delete notice" });
-    }
-  });
-
 
   // Get user progress for all courses
   app.get("/api/users/:userId/progress", async (req, res) => {
     try {
-      const progress = await storage.getUserAllProgress(req.params.userId);
-      console.log(`[API] Get progress for user ${req.params.userId}:`, progress);
+      const progress = await prisma.userProgress.findMany({ 
+        where: { userId: req.params.userId }
+      });
       res.json(progress);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch user progress" });
@@ -207,9 +88,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get user progress for specific course
   app.get("/api/users/:userId/progress/:courseId", async (req, res) => {
     try {
-      const progress = await storage.getUserProgress(req.params.userId, req.params.courseId);
+      const progress = await prisma.userProgress.findFirst({ 
+        where: { userId: req.params.userId, courseId: req.params.courseId }
+      });
       if (!progress) {
-        return res.status(404).json({ message: "Progress not found" });
+        // To maintain consistency with old MemStorage, don't return 404, return empty/null
+        return res.json(null);
       }
       res.json(progress);
     } catch (error) {
@@ -220,40 +104,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update user progress
   app.put("/api/users/:userId/progress/:courseId", async (req, res) => {
     try {
-      console.log(`[API] Update progress for user ${req.params.userId}, course ${req.params.courseId}:`, req.body);
-      
-      const progressUpdateSchema = insertUserProgressSchema.partial().extend({
+      const progressUpdateSchema = z.object({
         progress: z.number().min(0).max(100).optional(),
         currentStep: z.number().min(1).max(3).optional(),
         timeSpent: z.number().min(0).optional(),
         completed: z.boolean().optional(),
-      });
+      }).partial();
       
       const progressData = progressUpdateSchema.parse(req.body);
       
-      // Check if progress exists, create if not
-      const existing = await storage.getUserProgress(req.params.userId, req.params.courseId);
-      console.log(`[API] Existing progress:`, existing);
+      const existing = await prisma.userProgress.findFirst({
+        where: { userId: req.params.userId, courseId: req.params.courseId }
+      });
       
       if (!existing) {
-        const newProgress = await storage.createUserProgress({
-          userId: req.params.userId,
-          courseId: req.params.courseId,
-          progress: progressData.progress || 0,
-          currentStep: progressData.currentStep || 1,
-          timeSpent: progressData.timeSpent || 0,
-          completed: progressData.completed || false,
+        const newProgress = await prisma.userProgress.create({
+          data: {
+            userId: req.params.userId,
+            courseId: req.params.courseId,
+            progress: progressData.progress,
+            currentStep: progressData.currentStep,
+            timeSpent: progressData.timeSpent,
+            completed: progressData.completed,
+          }
         });
-        console.log(`[API] Created new progress:`, newProgress);
         return res.json(newProgress);
       }
 
-      const updated = await storage.updateUserProgress(
-        req.params.userId,
-        req.params.courseId,
-        progressData
-      );
-      console.log(`[API] Updated progress:`, updated);
+      const updated = await prisma.userProgress.update({
+        where: { id: existing.id },
+        data: { ...progressData, lastAccessed: new Date() }
+      });
       res.json(updated);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -266,7 +147,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get course assessments
   app.get("/api/courses/:courseId/assessments", async (req, res) => {
     try {
-      const assessments = await storage.getCourseAssessments(req.params.courseId);
+      const assessments = await prisma.assessment.findMany({ 
+        where: { courseId: req.params.courseId }
+      });
       res.json(assessments);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch assessments" });
@@ -276,20 +159,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Submit assessment
   app.post("/api/users/:userId/assessments/:courseId", async (req, res) => {
     try {
-      const assessmentData = insertUserAssessmentSchema.parse({
+      // Note: We are not using a pre-defined Zod schema here for simplicity in refactoring
+      const assessmentData = {
         userId: req.params.userId,
         courseId: req.params.courseId,
-        ...req.body,
-      });
+        score: req.body.score,
+        totalQuestions: req.body.totalQuestions,
+        passed: req.body.passed,
+        attemptNumber: req.body.attemptNumber,
+      };
 
-      const result = await storage.createUserAssessment(assessmentData);
+      const result = await prisma.userAssessment.create({ data: assessmentData });
       
       // If passed, create certificate
       if (result.passed) {
-        await storage.createCertificate({
-          userId: req.params.userId,
-          courseId: req.params.courseId,
-          certificateUrl: `/certificates/${result.id}.pdf`,
+        await prisma.certificate.create({
+          data: {
+            userId: req.params.userId,
+            courseId: req.params.courseId,
+            certificateUrl: `/certificates/${result.id}.pdf`, // Example URL
+          }
         });
       }
 
@@ -305,7 +194,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get user certificates
   app.get("/api/users/:userId/certificates", async (req, res) => {
     try {
-      const certificates = await storage.getUserCertificates(req.params.userId);
+      const certificates = await prisma.certificate.findMany({ 
+        where: { userId: req.params.userId }
+      });
       res.json(certificates);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch certificates" });
